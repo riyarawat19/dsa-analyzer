@@ -5,7 +5,6 @@
  *  - n <= 10^5
  *  - n < 100000
  *  - n,m <= 10^5
- *  - array length / string length cases
  */
 
 function parseConstraints(constraints) {
@@ -17,11 +16,10 @@ function parseConstraints(constraints) {
   }
 
   const normalized = constraints.toLowerCase().replace(/\s/g, "");
-
   const values = {};
 
-  // Match patterns like n<=1e5, m<=10^5
-  const expMatches = normalized.matchAll(/([a-z]+)<=?(1e\d+|10\^\d+)/g);
+  // Match exponent formats: n<=1e5, m<=10^5
+  const expMatches = normalized.matchAll(/([a-z]+)[<]=?(1e\d+|10\^\d+)/g);
   for (const match of expMatches) {
     const variable = match[1];
     const value =
@@ -32,17 +30,17 @@ function parseConstraints(constraints) {
     values[variable] = value;
   }
 
-  // Match numeric constraints like n<=100000
-  const numMatches = normalized.matchAll(/([a-z]+)<=?(\d+)/g);
+  // Match numeric formats: n<=100000
+  const numMatches = normalized.matchAll(/([a-z]+)[<]=?(\d+)/g);
   for (const match of numMatches) {
     values[match[1]] = parseInt(match[2], 10);
   }
 
   // Decide overall size
   let maxValue = 0;
-  Object.values(values).forEach((v) => {
-    if (v > maxValue) maxValue = v;
-  });
+  for (const v of Object.values(values)) {
+    maxValue = Math.max(maxValue, v);
+  }
 
   let size = "unknown";
   if (maxValue >= 1e6) size = "very_large";
@@ -50,10 +48,7 @@ function parseConstraints(constraints) {
   else if (maxValue >= 1e4) size = "medium";
   else if (maxValue > 0) size = "small";
 
-  return {
-    size,
-    values,
-  };
+  return { size, values };
 }
 
 export { parseConstraints };

@@ -1,49 +1,48 @@
-// Detects if code contains nested loops
+// Detects real nested loops
 function hasNestedLoop(code) {
   if (!code) return false;
 
-  const forCount = (code.match(/\bfor\s*\(/g) || []).length;
-  const whileCount = (code.match(/\bwhile\s*\(/g) || []).length;
+  const normalized = code.replace(/\s+/g, " ");
 
-  return forCount + whileCount >= 2;
+  return /for\s*\(.*?\).*for\s*\(/.test(normalized) ||
+         /while\s*\(.*?\).*while\s*\(/.test(normalized);
 }
 
 
-// Detects recursion (heuristic-based)
+// Detects actual recursion (function calling itself)
 function usesRecursion(code) {
   if (!code) return false;
 
-  // Looks for repeated function calls
-  const functionCalls = code.match(/\w+\s*\(/g) || [];
-  return functionCalls.length > 5;
+  const match = code.match(/\b(\w+)\s*\([^)]*\)\s*{/);
+  if (!match) return false;
+
+  const funcName = match[1];
+  const callRegex = new RegExp(`\\b${funcName}\\s*\\(`, "g");
+
+  return (code.match(callRegex) || []).length > 1;
 }
 
-// Detects any array access like arr[i]
+// Detects any array access
 function hasArrayAccess(code) {
   if (!code) return false;
-  return /\w+\s*\[.*?\]/.test(code);
+  return /\w+\s*\[[^\]]+\]/.test(code);
 }
 
-// Detects unsafe indexing patterns
+// Detects unsafe indexing like arr[i+1], arr[i-k]
 function hasUnsafeIndexing(code) {
   if (!code) return false;
-
-  return (
-    /\[\s*i\s*\+\s*1\s*\]/.test(code) ||
-    /\[\s*i\s*-\s*1\s*\]/.test(code) ||
-    /\[\s*j\s*\+\s*1\s*\]/.test(code)
-  );
+  return /\[\s*\w+\s*[\+\-]\s*\w+\s*\]/.test(code);
 }
 
-// Detects use of int for potentially large numbers (C++ / Java)
+// Detects possible integer overflow
 function usesIntForLargeNumbers(code) {
   if (!code) return false;
 
   const hasInt = /\bint\b/.test(code);
-  const hasLongLong = /\blong\s+long\b/.test(code);
+  const riskyMath = /[\*\+]=|\*\s*\w+/;
   const hasLong = /\blong\b/.test(code);
 
-  return hasInt && !hasLongLong && !hasLong;
+  return hasInt && riskyMath.test(code) && !hasLong;
 }
 
 export {
