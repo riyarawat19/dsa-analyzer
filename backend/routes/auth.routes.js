@@ -1,6 +1,5 @@
 import express from "express";
-import { googleLogin } from "<div styleName={} />
-<services></services>/auth.controller.js";
+import { googleLogin } from "../services/auth.controller.js";
 
 const router = express.Router();
 
