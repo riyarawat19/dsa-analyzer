@@ -6,25 +6,32 @@ import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// ✅ CORS FIRST (this already handles OPTIONS)
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+// ✅ JSON
 app.use(express.json());
 
-// Routes
+// ✅ Routes
+app.use("/auth", authRoutes);
 app.use("/api/analyze", analyzeRoute);
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({
-    error: "Internal Server Error",
-  });
+// Health check
+app.get("/", (req, res) => {
+  res.send("Backend running ✅");
 });
 
-// auth
-app.use("/auth", authRoutes);
-
-
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal Server Error" });
+});
 
 const PORT = 5000;
 app.listen(PORT, () => {

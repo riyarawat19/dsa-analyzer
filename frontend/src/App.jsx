@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import GoogleAuth from "./components/GoogleAuth";
+import { useEffect, useState } from "react";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [isAuth, setIsAuth] = useState(
+    !!localStorage.getItem("token")
+  );
 
   return (
     <GoogleOAuthProvider clientId="450140745604-nh43c3mq9vjpmn03suoe45ca94168dre.apps.googleusercontent.com">
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-        {!user ? (
-          <GoogleAuth setUser={setUser} />
-        ) : (
-          <Dashboard user={user} />
-        )}
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuth ? <Navigate to="/dashboard" /> : <Login setIsAuth={setIsAuth} />
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={isAuth ? <Dashboard /> : <Navigate to="/" />}
+        />
+      </Routes>
     </GoogleOAuthProvider>
   );
 }
