@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 
 import analyzeRoute from "./routes/analyze.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
@@ -19,6 +20,11 @@ app.use((err, req, res, next) => {
     error: "Internal Server Error",
   });
 });
+
+// auth
+app.use("/auth", authRoutes);
+
+
 
 const PORT = 5000;
 app.listen(PORT, () => {
