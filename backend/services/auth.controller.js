@@ -5,7 +5,12 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res) => {
   try {
+    console.log("🔥 /auth/google hit");
+
     const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ message: "Token missing" });
+    }
 
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -14,22 +19,27 @@ export const googleLogin = async (req, res) => {
 
     const payload = ticket.getPayload();
 
-    const user = {
-      name: payload.name,
-      email: payload.email,
-      picture: payload.picture,
-    };
+    const appToken = jwt.sign(
+      {
+        email: payload.email,
+        name: payload.name,
+      },
+      "secretkey",
+      { expiresIn: "7d" }
+    );
 
-    const appToken = jwt.sign(user, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.status(200).json({
+    // 🔥 THIS RESPONSE IS REQUIRED
+    return res.status(200).json({
       token: appToken,
-      user,
+      user: {
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      },
     });
 
   } catch (err) {
-    res.status(401).json({ message: "Invalid Google token" });
+    console.error("AUTH ERROR:", err);
+    return res.status(500).json({ message: "Auth failed" });
   }
 };
