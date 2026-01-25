@@ -1,11 +1,14 @@
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import User from "../models/User.js";
+import Stats from "../models/Stats.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res) => {
   try {
-    console.log("🔥 /auth/google hit");
+    console.log("🔥 /auth/google controller hit");
+    console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
 
     const { token } = req.body;
     if (!token) {
@@ -19,22 +22,39 @@ export const googleLogin = async (req, res) => {
 
     const payload = ticket.getPayload();
 
-    const appToken = jwt.sign(
-      {
-        email: payload.email,
+    // 🔥 FIND OR CREATE USER IN DB
+    let user = await User.findOne({ googleId: payload.sub });
+
+    if (!user) {
+      user = await User.create({
+        googleId: payload.sub,
         name: payload.name,
-      },
-      "secretkey",
+        email: payload.email,
+        avatar: payload.picture,
+      });
+
+      // create stats doc once
+      await Stats.create({ userId: user._id });
+
+      console.log("🟢 User created:", user._id);
+    } else {
+      console.log("🔵 Existing user:", user._id);
+    }
+
+    // 🔐 JWT SHOULD STORE userId
+    const appToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // 🔥 THIS RESPONSE IS REQUIRED
     return res.status(200).json({
       token: appToken,
       user: {
-        name: payload.name,
-        email: payload.email,
-        picture: payload.picture,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        picture: user.avatar,
       },
     });
 
