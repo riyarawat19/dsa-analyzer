@@ -3,6 +3,7 @@ import cors from "cors";
 
 import analyzeRoute from "./routes/analyze.js";
 import authRoutes from "./routes/auth.routes.js";
+import mongoose from "mongoose";
 
 const app = express();
 
@@ -12,22 +13,23 @@ app.use(
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
-// ✅ JSON
 app.use(express.json());
 
-// ✅ Routes
+mongoose
+  .connect("mongodb://127.0.0.1:27017/dsa-analyzer")
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error(err));
+
 app.use("/auth", authRoutes);
 app.use("/api/analyze", analyzeRoute);
 
-// Health check
 app.get("/", (req, res) => {
   res.send("Backend running ✅");
 });
 
-// Error handler
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: "Internal Server Error" });
