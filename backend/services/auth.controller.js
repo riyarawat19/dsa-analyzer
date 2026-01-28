@@ -7,7 +7,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res) => {
   try {
-    console.log("🔥 /auth/google controller hit");
+    console.log("/auth/google controller hit");
     console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
 
     const { token } = req.body;
@@ -22,7 +22,7 @@ export const googleLogin = async (req, res) => {
 
     const payload = ticket.getPayload();
 
-    // 🔥 FIND OR CREATE USER IN DB
+    // FIND OR CREATE USER IN DB
     let user = await User.findOne({ googleId: payload.sub });
 
     if (!user) {
@@ -41,7 +41,7 @@ export const googleLogin = async (req, res) => {
       console.log("🔵 Existing user:", user._id);
     }
 
-    // 🔐 JWT SHOULD STORE userId
+    // JWT SHOULD STORE userId
     const appToken = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
