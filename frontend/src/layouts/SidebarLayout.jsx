@@ -50,11 +50,11 @@ export default function SidebarLayout({ children }) {
       ];
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
+    <div className="flex h-screen bg-transparent text-white items-stretch">
       {/* Sidebar */}
       <Sidebar open={open} setOpen={setOpen}>
         <SidebarBody>
-          <h2 className="mb-8 text-xl font-bold">Big(O)</h2>
+          <h2 className="mb-8 text-xl font-bold"></h2>
 
           <div className="flex flex-col gap-2">
             {links.map((link, idx) => (

@@ -88,7 +88,7 @@ export const MobileSidebar = ({ className, children, ...props }) => {
 
   return (
     <div
-      className="flex md:hidden h-10 px-4 py-4 items-center justify-end bg-transparent w-full"
+      className="flex md:hidden h-10 px-4 py-4 justify-end bg-transparent w-full"
       {...props}
     >
       <IconMenu2
@@ -134,7 +134,7 @@ export const SidebarLink = ({ link, className, ...props }) => {
       href={link.href}
       onClick={link.onClick}
       className={cn(
-        "group/sidebar flex items-center gap-3 py-2",
+        "group/sidebar flex gap-3 py-2",
         "text-white/80 hover:text-white transition",
         className
       )}
