@@ -4,6 +4,9 @@ import cors from "cors";
 import analyzeRoute from "./routes/analyze.js";
 import authRoutes from "./routes/auth.routes.js";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
+
 
 const app = express();
 
@@ -19,9 +22,11 @@ app.use(
 app.use(express.json());
 
 mongoose
-  .connect("mongodb://127.0.0.1:27017/dsa-analyzer")
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error(err));
+
+console.log("MONGO_URI:", process.env.MONGODB_URI ? "loaded" : "missing");
 
 app.use("/auth", authRoutes);
 app.use("/api/analyze", analyzeRoute);
