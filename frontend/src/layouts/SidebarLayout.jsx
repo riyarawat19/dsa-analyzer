@@ -1,80 +1,74 @@
 import { useState } from "react";
-import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarBody,
+  SidebarLink,
+} from "@/components/ui/sidebar";
 import {
   IconBrandTabler,
-  IconLogin,
   IconUserBolt,
   IconLogout,
 } from "@tabler/icons-react";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
+import { getUserFromToken } from "@/utils/getUserFromToken";
 
-export default function SidebarLayout({ children }) {
+export default function SidebarLayout() {
   const [open, setOpen] = useState(false);
-  const { isAuth, logout } = useAuth();
+  const { logout } = useAuth();
+  const user = getUserFromToken();
   const navigate = useNavigate();
 
-  const links = isAuth
-    ? [
-        {
-          label: "Dashboard",
-          href: "/dashboard",
-          icon: <IconBrandTabler className="h-5 w-5" />,
-        },
-        {
-          label: "Analyze",
-          href: "/analyze",
-          icon: <IconUserBolt className="h-5 w-5" />,
-        },
-        {
-          label: "Logout",
-          href: "#",
-          icon: <IconLogout className="h-5 w-5" />,
-          onClick: () => {
-            logout();
-            navigate("/");
-          },
-        },
-      ]
-    : [
-        {
-          label: "Home",
-          href: "/",
-          icon: <IconBrandTabler className="h-5 w-5" />,
-        },
-        {
-          label: "Login",
-          href: "/login",
-          icon: <IconLogin className="h-5 w-5" />,
-        },
-      ];
+  const links = [
+    {
+      label: "Dashboard",
+      onClick: () => navigate("/dashboard"),
+      icon: <IconBrandTabler className="h-5 w-5" />,
+    },
+    {
+      label: "Analyze",
+      onClick: () => navigate("/analyze"),
+      icon: <IconUserBolt className="h-5 w-5" />,
+    },
+    {
+      label: "Logout",
+      onClick: () => {
+        logout();
+        navigate("#");
+      },
+      icon: <IconLogout className="h-5 w-5" />,
+    },
+  ];
 
   return (
-    <div className="flex h-screen bg-transparent text-white items-stretch">
-      {/* Sidebar */}
+    <div className="flex h-screen w-full">
+      {/* SIDEBAR */}
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody>
-          <h2 className="mb-8 text-xl font-bold"></h2>
-
+        <SidebarBody className="flex flex-col h-full">
           <div className="flex flex-col gap-2">
-            {links.map((link, idx) => (
-              <SidebarLink key={idx} link={link} />
+            {links.map((l, i) => (
+              <SidebarLink key={i} link={l} />
             ))}
+          </div>
+
+          <div className="mt-auto pt-4 border-t border-white/10">
+            <div
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-3 p-2 cursor-pointer"
+            >
+              <img
+                src={user?.picture}
+                className="h-8 w-8 rounded-full"
+              />
+              {open && <span>{user?.name}</span>}
+            </div>
           </div>
         </SidebarBody>
       </Sidebar>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto p-6">
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setOpen(true)}
-          className="mb-4 rounded-md bg-neutral-800 px-3 py-2 text-sm md:hidden"
-        >
-          ☰ Menu
-        </button>
-
-        {children}
+      {/* 🔥 ONLY ROUTED CONTENT */}
+      <main className="flex-1 p-6 overflow-y-auto">
+        <Outlet />
       </main>
     </div>
   );

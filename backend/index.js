@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 import authRoutes from "./routes/auth.routes.js";
-import analyzeRoute from "./routes/analyze.js";
+import analysisRoute from "./routes/analysis.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import userRoutes from "./routes/user.routes.js";
 
@@ -30,7 +30,7 @@ mongoose
   .catch(console.error);
 
 app.use("/auth", authRoutes);
-app.use("/api/analyze", analyzeRoute);
+app.use("/api/analysis", analysisRoute);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/user", userRoutes);
 

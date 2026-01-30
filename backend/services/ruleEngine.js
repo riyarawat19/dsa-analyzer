@@ -49,6 +49,10 @@ function getSeverity(errorType) {
 /* ===== MAIN RULE ENGINE ===== */
 
 export default function ruleEngine({ code, errorType, constraints, language }) {
+  console.log("🔥 RULE ENGINE HIT");
+  console.log("CODE RECEIVED:\n", code);
+  console.log("ERROR TYPE:", errorType);
+
   const parsedConstraints = parseConstraints(constraints);
 
   const timeComplexity = estimateComplexity(code);
@@ -98,7 +102,7 @@ export default function ruleEngine({ code, errorType, constraints, language }) {
         severity: getSeverity(errorType),
       },
 
-      secondaryIssues: secondaryIssues.slice(0, 3).map(issue => ({
+      secondaryIssues: secondaryIssues.slice(0, 3).map((issue) => ({
         matchedRule: issue.matchedRule,
         reason: issue.reason,
         fix: issue.fix,
@@ -120,8 +124,7 @@ export default function ruleEngine({ code, errorType, constraints, language }) {
     severity: "Low",
     reason:
       "No known failure pattern detected. The issue may involve logic or unseen edge cases.",
-    fix:
-      "Re-evaluate constraints, optimize time/space complexity, and test edge cases.",
+    fix: "Re-evaluate constraints, optimize time/space complexity, and test edge cases.",
     currentComplexity: timeComplexity,
     spaceComplexity: spaceComplexity,
     expectedComplexity: "Constraint dependent",

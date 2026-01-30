@@ -3,38 +3,36 @@ import Hero from "./pages/Hero";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Analyze from "./pages/Analyze";
+import Profile from "@/pages/Profile";
 import { useAuth } from "@/context/AuthContext";
 import SidebarLayout from "./layouts/SidebarLayout";
-import { WavyBackground } from "./components/ui/wavy-background";
 import AppShell from "./layouts/AppShell";
-import Profile from "@/pages/Profile";
-
 
 function App() {
   const { isAuth } = useAuth();
 
   return (
-    <AppShell>
-      <SidebarLayout>
-        <Routes>
-          <Route path="/" element={<Hero />} />
-          <Route path="/profile" element={<Profile />} />
+    <Routes>
+      <Route element={<AppShell />}>
+        
+        {/* PUBLIC ROUTES */}
+        <Route path="/" element={<Hero />} />
+        <Route
+          path="login"
+          element={isAuth ? <Navigate to="/dashboard" /> : <Login />}
+        />
 
-          <Route
-            path="/login"
-            element={isAuth ? <Navigate to="/dashboard" /> : <Login />}
-          />
-          <Route
-            path="/dashboard"
-            element={isAuth ? <Dashboard /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/analyze"
-            element={isAuth ? <Analyze /> : <Navigate to="/login" />}
-          />
-        </Routes>
-      </SidebarLayout>
-    </AppShell>
+        {/* PROTECTED ROUTES */}
+        <Route
+          element={isAuth ? <SidebarLayout /> : <Navigate to="/login" />}
+        >
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="analyze" element={<Analyze />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+
+      </Route>
+    </Routes>
   );
 }
 
