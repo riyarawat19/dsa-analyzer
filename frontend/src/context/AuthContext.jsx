@@ -2,54 +2,31 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [isAuth, setIsAuth] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  // Run once on app load
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (token) {
-      setIsAuth(true);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    }
-
-    setLoading(false);
+    setIsAuth(!!token);
   }, []);
 
-  const login = (token, userData) => {
+  const login = (token) => {
+    // 🔥 THIS WAS MISSING / BROKEN
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
     setIsAuth(true);
-    setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     setIsAuth(false);
-    setUser(null);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuth,
-        user,
-        login,
-        logout,
-        loading,
-      }}
-    >
+    <AuthContext.Provider value={{ isAuth, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);

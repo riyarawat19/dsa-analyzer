@@ -24,4 +24,6 @@ export const authMiddleware = async (req, res, next) => {
     console.error("AUTH ERROR:", err);
     return res.status(403).json({ message: "Invalid token" });
   }
+  
+
 };
