@@ -7,6 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import SidebarLayout from "./layouts/SidebarLayout";
 import { WavyBackground } from "./components/ui/wavy-background";
 import AppShell from "./layouts/AppShell";
+import Profile from "@/pages/Profile";
+
 
 function App() {
   const { isAuth } = useAuth();
@@ -16,6 +18,8 @@ function App() {
       <SidebarLayout>
         <Routes>
           <Route path="/" element={<Hero />} />
+          <Route path="/profile" element={<Profile />} />
+
           <Route
             path="/login"
             element={isAuth ? <Navigate to="/dashboard" /> : <Login />}

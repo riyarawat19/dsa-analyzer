@@ -41,6 +41,7 @@ export const getDashboardStats = async (req, res) => {
       .select("language topic summary.score summary.errorTypes createdAt");
 
     return res.json({
+      user:req.user,
       totalAnalyses,
       errorBreakdown,
       weakTopics,

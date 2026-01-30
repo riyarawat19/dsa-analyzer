@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import analyzeRoute from "./routes/analyze.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/api/analyze", analyzeRoute);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/user", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend running ✅");
