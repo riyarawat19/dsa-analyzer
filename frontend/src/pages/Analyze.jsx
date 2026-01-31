@@ -4,39 +4,41 @@ import axios from "axios";
 export default function Analyze() {
   const [code, setCode] = useState("");
   const [language, setLanguage] = useState("cpp");
-  const [errorType, setErrorType] = useState("RE");
+  const [errorType, setErrorType] = useState("TLE");
+  const [topic, setTopic] = useState("Array");
+  const [constraints, setConstraints] = useState("");
+  const [problemType] = useState("DSA");
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
   const handleAnalyze = async () => {
-    if (!code.trim()) {
-      setError("Please paste some code.");
-      return;
-    }
+    setLoading(true);
+    setError(null);
+    setResult(null);
 
     try {
-      setLoading(true);
-      setError(null);
-      setResult(null);
-
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        "http://localhost:5000/api/analysis",
+        "http://localhost:5000/api/analyze",
         {
           code,
           language,
           errorType,
+          topic,
+          constraints,
+          problemType,
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
 
-      setResult(res.data.analysis);
+      setResult(res.data);
     } catch (err) {
       console.error(err);
       setError("Analysis failed. Please try again.");
@@ -45,141 +47,135 @@ export default function Analyze() {
     }
   };
 
+  const findings = result?.findings || [];
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8 text-white">
-      {/* HEADER */}
+    <div className="max-w-5xl mx-auto pt-16 pb-20 text-white space-y-10">
+
+      {/* ===== HEADER ===== */}
       <div>
-        <h1 className="text-3xl font-bold">Analyze Code</h1>
-        <p className="text-white/60">
-          Paste your DSA code and find runtime issues, weak topics, and fixes.
+        <h1 className="text-4xl font-bold">Analyze Code</h1>
+        <p className="text-white/60 mt-2">
+          Paste your code and let us analyze it.
         </p>
       </div>
 
-      {/* CONTROLS */}
-      <div className="flex flex-wrap gap-4">
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="bg-black/40 backdrop-blur border border-white/10 rounded-lg px-4 py-2"
-        >
-          <option value="cpp">C++</option>
-          <option value="java">Java</option>
-          <option value="python">Python</option>
-        </select>
+      {/* ===== INPUT FORM ===== */}
+      <div className="space-y-6 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 p-8">
 
-        <select
-          value={errorType}
-          onChange={(e) => setErrorType(e.target.value)}
-          className="bg-black/40 backdrop-blur border border-white/10 rounded-lg px-4 py-2"
-        >
-          <option value="RE">Runtime Error</option>
-          <option value="TLE">Time Limit Exceeded</option>
-          <option value="WA">Wrong Answer</option>
-        </select>
-      </div>
-
-      {/* CODE INPUT */}
-      <textarea
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder="// Paste your code here"
-        className="w-full h-72 bg-black/40 backdrop-blur border border-white/10 rounded-xl p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-white/20"
-      />
-
-      {/* ACTION */}
-      <button
-        onClick={handleAnalyze}
-        disabled={loading}
-        className="px-8 py-3 rounded-xl bg-white text-black font-semibold hover:bg-zinc-200 transition disabled:opacity-50"
-      >
-        {loading ? "Analyzing..." : "Run Analysis"}
-      </button>
-
-      {/* ERROR */}
-      {error && <p className="text-red-400">{error}</p>}
-
-      {/* RESULT */}
-      {result && <AnalysisResult result={result} />}
-    </div>
-  );
-}
-function AnalysisResult({ result }) {
-  const summary = result.summary || {};
-
-  return (
-    <div className="space-y-6">
-      {/* SUMMARY */}
-      <div className="rounded-xl bg-black/40 backdrop-blur border border-white/10 p-6">
-        <h2 className="text-xl font-semibold mb-4">Summary</h2>
-
-        <div className="flex flex-wrap gap-6 text-sm">
-          <Stat
-            label="Score"
-            value={
-              summary.score !== undefined
-                ? `${summary.score}%`
-                : "Not calculated"
-            }
-          />
-          <Stat
-            label="Errors"
-            value={
-              summary.errorTypes?.length
-                ? summary.errorTypes.join(", ")
-                : "Unknown"
-            }
-          />
-          <Stat
-            label="Status"
-            value={
-              summary.hasErrors === undefined
-                ? "Unknown"
-                : summary.hasErrors
-                ? "Issues Found"
-                : "Clean"
-            }
+        {/* Code */}
+        <div>
+          <label className="block mb-2 text-sm text-white/70">Code</label>
+          <textarea
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            rows={10}
+            className="w-full rounded-lg bg-black/60 border border-white/10 p-4 font-mono text-sm outline-none focus:border-white/30"
+            placeholder="// Paste your code here"
           />
         </div>
+
+        {/* Selects */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Select label="Language" value={language} onChange={setLanguage}
+            options={["cpp", "java", "python"]} />
+
+          <Select label="Error Type" value={errorType} onChange={setErrorType}
+            options={["TLE", "WA", "RE", "Overflow"]} />
+
+          <Select label="Topic" value={topic} onChange={setTopic}
+            options={["Array","DP","Graph","Tree","Stack","Queue","Greedy","Heap","String"]} />
+
+          <div>
+            <label className="block mb-2 text-sm text-white/70">Constraints</label>
+            <input
+              value={constraints}
+              onChange={(e) => setConstraints(e.target.value)}
+              placeholder="e.g. n <= 1e5"
+              className="w-full rounded-lg bg-black/60 border border-white/10 px-4 py-3 text-sm outline-none focus:border-white/30"
+            />
+          </div>
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+          className="w-full rounded-xl bg-white text-black font-semibold py-4 hover:bg-zinc-200 transition disabled:opacity-60"
+        >
+          {loading ? "Analyzing..." : "Analyze Code"}
+        </button>
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
       </div>
 
-      {/* FINDINGS */}
-      {result.findings?.length > 0 ? (
-        <div className="space-y-4">
-          {result.findings.map((f, idx) => (
-            <div
-              key={idx}
-              className="rounded-xl bg-black/30 backdrop-blur border border-white/10 p-6"
-            >
-              <h3 className="font-semibold text-red-400">{f.rule}</h3>
+      {/* ===== RESULT ===== */}
+      {result && (
+        <div className="space-y-8">
 
-              <p className="text-white/80 mt-2">{f.reason}</p>
+          {/* Score & Complexity */}
+          <div className="grid md:grid-cols-3 gap-6">
+            <ResultCard label="Score" value={`${result.summary.score}%`} />
+            <ResultCard label="Time Complexity" value={result.currentComplexity || "Unknown"} />
+            <ResultCard label="Space Complexity" value={result.spaceComplexity || "Unknown"} />
+          </div>
 
-              {f.fix && (
-                <p className="text-green-400 mt-3">
-                  <span className="font-semibold">Fix:</span> {f.fix}
-                </p>
-              )}
+          {/* Issues */}
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              Issues Found ({findings.length})
+            </h2>
 
-              <div className="mt-4 flex flex-wrap gap-4 text-xs text-white/60">
-                {f.confidence && <span>Confidence: {f.confidence}</span>}
-                {f.errorType && <span>Error Type: {f.errorType}</span>}
+            {findings.length === 0 && (
+              <div className="rounded-xl bg-green-500/10 border border-green-400/30 p-6 text-green-300">
+                ✅ No critical issues detected. Code looks good!
               </div>
-            </div>
-          ))}
+            )}
+
+            {findings.map((f, idx) => (
+              <div key={idx}
+                className="rounded-xl bg-black/40 border border-white/10 p-6">
+                <div className="flex justify-between">
+                  <p className="font-semibold text-red-400">{f.rule}</p>
+                  <span className="text-xs">{f.severity}</span>
+                </div>
+                <p className="text-white/70 mt-2">{f.reason}</p>
+                <p className="text-green-400 mt-3 text-sm">Fix: {f.fix}</p>
+              </div>
+            ))}
+          </div>
+
         </div>
-      ) : (
-        <p className="text-white/60">No findings returned.</p>
       )}
+
     </div>
   );
 }
 
+/* ===== COMPONENTS ===== */
 
-function Stat({ label, value }) {
+function Select({ label, value, onChange, options }) {
   return (
     <div>
-      <p className="text-white/50">{label}</p>
-      <p className="text-lg font-semibold">{value}</p>
+      <label className="block mb-2 text-sm text-white/70">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg bg-black/60 border border-white/10 px-4 py-3 text-sm outline-none focus:border-white/30"
+      >
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function ResultCard({ label, value }) {
+  return (
+    <div className="rounded-xl bg-black/40 border border-white/10 p-6">
+      <p className="text-sm text-white/60">{label}</p>
+      <p className="text-2xl font-bold mt-2">{value}</p>
     </div>
   );
 }

@@ -3,15 +3,17 @@ import Analysis from "../models/Analysis.js";
 import { updateStats } from "../services/updateStats.js";
 
 export const runAnalysis = async (req, res) => {
-  console.log("🔥 runAnalysis HIT");
-  console.log("BODY:", req.body);
-  console.log("USER:", req.user);
-
   try {
-    const { code, language, errorType, problemType, constraints, topic } =
-      req.body;
+    const {
+      code,
+      language,
+      errorType,
+      problemType,
+      constraints,
+      topic,
+    } = req.body;
 
-    // -------- Validations --------
+    /* ===== VALIDATIONS ===== */
     if (!code || code.trim() === "") {
       return res.status(400).json({ error: "Code cannot be empty" });
     }
@@ -21,7 +23,7 @@ export const runAnalysis = async (req, res) => {
       return res.status(400).json({ error: "Invalid error type" });
     }
 
-    // -------- Run Rule Engine (RAW OUTPUT) --------
+    /* ===== RUN RULE ENGINE ===== */
     const raw = analyzeCode({
       code,
       language,
@@ -30,22 +32,24 @@ export const runAnalysis = async (req, res) => {
       constraints,
     });
 
-    // -------- Normalize Findings (CRITICAL FIX) --------
+    /* ===== NORMALIZE OUTPUT ===== */
     const findings = [];
 
-    if (raw?.matchedRule) {
+    // Primary Issue
+    if (raw?.primaryIssue) {
       findings.push({
-        rule: raw.matchedRule,
-        confidence: raw.confidence,
-        reason: raw.reason,
-        fix: raw.fix,
-        severity: raw.severity,
+        rule: raw.primaryIssue.matchedRule,
+        confidence: raw.primaryIssue.confidence,
+        reason: raw.primaryIssue.reason,
+        fix: raw.primaryIssue.fix,
+        severity: raw.primaryIssue.severity,
         errorType,
-        suggestedTopics: raw.suggestedTopics || [],
-        similarProblems: raw.similarProblems || [],
+        suggestedTopics: raw.primaryIssue.suggestedTopics || [],
+        similarProblems: raw.primaryIssue.similarProblems || [],
       });
     }
 
+    // Secondary Issues
     if (Array.isArray(raw?.secondaryIssues)) {
       raw.secondaryIssues.forEach((issue) => {
         findings.push({
@@ -55,38 +59,39 @@ export const runAnalysis = async (req, res) => {
           fix: issue.fix,
           severity: issue.severity,
           errorType,
+          suggestedTopics: issue.suggestedTopics || [],
+          similarProblems: issue.similarProblems || [],
         });
       });
     }
 
-    // -------- Build Summary --------
+    /* ===== SUMMARY ===== */
     const summary = {
       hasErrors: findings.length > 0,
       errorTypes: [...new Set(findings.map((f) => f.errorType))],
       score: Math.max(0, 100 - findings.length * 10),
     };
 
-    // -------- Save Analysis (STEP 1 CORE) --------
+    /* ===== SAVE ANALYSIS ===== */
     const analysisDoc = await Analysis.create({
-      userId: req.user.userId,
+      userId: req.user._id, // IMPORTANT: full user object se
       language,
       topic,
       summary,
       findings,
     });
 
-    console.log("✅ ANALYSIS SAVED:", analysisDoc._id);
+    /* ===== UPDATE STATS ===== */
+    await updateStats(req.user._id, analysisDoc);
 
-    // -------- Update Stats --------
-    await updateStats(req.user.userId, analysisDoc);
-
-    // -------- Respond --------
+    /* ===== RESPONSE ===== */
     return res.status(201).json({
       summary,
       findings,
     });
+
   } catch (err) {
-    console.error("ANALYSIS ERROR STACK:", err);
+    console.error("ANALYSIS ERROR:", err);
     return res.status(500).json({
       message: "Analysis failed",
       error: err.message,
