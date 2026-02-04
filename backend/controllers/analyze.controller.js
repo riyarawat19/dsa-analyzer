@@ -1,6 +1,7 @@
 import analyzeCode from "../services/ruleEngine.js";
 import Analysis from "../models/Analysis.js";
 import { updateStats } from "../services/updateStats.js";
+import mongoose from "mongoose";
 
 export const runAnalysis = async (req, res) => {
   try {
@@ -10,20 +11,14 @@ export const runAnalysis = async (req, res) => {
       errorType,
       problemType,
       constraints,
-      topic,
+      topic = "general",
     } = req.body;
 
-    /* ===== VALIDATIONS ===== */
-    if (!code || code.trim() === "") {
-      return res.status(400).json({ error: "Code cannot be empty" });
+    if (!code || !errorType) {
+      return res.status(400).json({ error: "Invalid input" });
     }
 
-    const validErrorTypes = ["TLE", "WA", "RE", "Overflow"];
-    if (!validErrorTypes.includes(errorType)) {
-      return res.status(400).json({ error: "Invalid error type" });
-    }
-
-    /* ===== RUN RULE ENGINE ===== */
+    // 🔥 RAW RULE ENGINE OUTPUT (OBJECT)
     const raw = analyzeCode({
       code,
       language,
@@ -32,69 +27,63 @@ export const runAnalysis = async (req, res) => {
       constraints,
     });
 
-    /* ===== NORMALIZE OUTPUT ===== */
+    // 🔥 NORMALIZE INTO FINDINGS ARRAY
     const findings = [];
 
-    // Primary Issue
-    if (raw?.primaryIssue) {
+    if (raw?.matchedRule) {
       findings.push({
-        rule: raw.primaryIssue.matchedRule,
-        confidence: raw.primaryIssue.confidence,
-        reason: raw.primaryIssue.reason,
-        fix: raw.primaryIssue.fix,
-        severity: raw.primaryIssue.severity,
+        rule: raw.matchedRule,
+        reason: raw.reason,
+        fix: raw.fix,
+        confidence: raw.confidence,
         errorType,
-        suggestedTopics: raw.primaryIssue.suggestedTopics || [],
-        similarProblems: raw.primaryIssue.similarProblems || [],
+        severity: raw.severity || "Medium",
+        suggestedTopics: raw.suggestedTopics || [],
+        similarProblems: raw.similarProblems || [],
       });
     }
 
-    // Secondary Issues
     if (Array.isArray(raw?.secondaryIssues)) {
       raw.secondaryIssues.forEach((issue) => {
         findings.push({
           rule: issue.matchedRule,
-          confidence: issue.confidence,
           reason: issue.reason,
           fix: issue.fix,
-          severity: issue.severity,
+          confidence: issue.confidence,
           errorType,
+          severity: issue.severity || "Low",
           suggestedTopics: issue.suggestedTopics || [],
           similarProblems: issue.similarProblems || [],
         });
       });
     }
 
-    /* ===== SUMMARY ===== */
+    // 🔥 SUMMARY
     const summary = {
       hasErrors: findings.length > 0,
-      errorTypes: [...new Set(findings.map((f) => f.errorType))],
-      score: Math.max(0, 100 - findings.length * 10),
+      errorTypes: [...new Set(findings.map(f => f.errorType))],
+      score: Math.max(0, 100 - findings.length * 20),
     };
 
-    /* ===== SAVE ANALYSIS ===== */
+    // 🔥 SAVE (IMPORTANT: ObjectId)
     const analysisDoc = await Analysis.create({
-      userId: req.user._id, // IMPORTANT: full user object se
+      userId: new mongoose.Types.ObjectId(req.user.userId),
       language,
       topic,
       summary,
       findings,
     });
 
-    /* ===== UPDATE STATS ===== */
-    await updateStats(req.user._id, analysisDoc);
+    await updateStats(req.user.userId, analysisDoc);
 
-    /* ===== RESPONSE ===== */
+    console.log("✅ ANALYSIS SAVED WITH FINDINGS:", findings.length);
+
     return res.status(201).json({
-      summary,
-      findings,
+      analysis: analysisDoc,
     });
 
   } catch (err) {
     console.error("ANALYSIS ERROR:", err);
-    return res.status(500).json({
-      message: "Analysis failed",
-      error: err.message,
-    });
+    return res.status(500).json({ message: "Analysis failed" });
   }
 };

@@ -1,8 +1,11 @@
 import Analysis from "../models/Analysis.js";
+import mongoose from "mongoose";
 
 export const getDashboardStats = async (req, res) => {
+  console.log("Dashboard Hit");
+  
   try {
-    const userId = req.user.userId;
+    const userId = new mongoose.Types.ObjectId(req.user.userId);
 
     // Total analyses
     const totalAnalyses = await Analysis.countDocuments({ userId });
