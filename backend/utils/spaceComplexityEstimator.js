@@ -59,7 +59,7 @@ export function estimateSpaceComplexity(code) {
 /* =================================================== */
 
 function hasExtraSpace(code) {
-  return /vector|array|map|unordered_map|set|dp\[|heap|queue|stack/i.test(code);
+  return /map|unordered_map|set|dp\[|heap|queue|stack/i.test(code);
 }
 
 function usesRecursion(code) {

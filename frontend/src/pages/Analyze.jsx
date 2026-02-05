@@ -173,7 +173,7 @@ export default function Analyze() {
 
                 <ResultCard
                   label="Time Complexity"
-                  value={result.currentComplexity || "Unknown"}
+                  value={result.timeComplexity || "Unknown"}
                 />
                 <ResultCard
                   label="Space Complexity"

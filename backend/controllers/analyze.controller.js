@@ -1,7 +1,6 @@
 import analyzeCode from "../services/ruleEngine.js";
 import Analysis from "../models/Analysis.js";
 import { updateStats } from "../services/updateStats.js";
-import { estimateComplexity } from "../utils/complexityEstimator.js";
 
 export const runAnalysis = async (req, res) => {
   try {
@@ -14,12 +13,11 @@ export const runAnalysis = async (req, res) => {
       topic = "general",
     } = req.body;
 
-    /* ===================== VALIDATION ===================== */
     if (!code || !errorType) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    /* ===================== RULE ENGINE ===================== */
+    // 🔥 RULE ENGINE
     const raw = analyzeCode({
       code,
       language,
@@ -28,26 +26,24 @@ export const runAnalysis = async (req, res) => {
       constraints,
     });
 
-    /* ===================== COMPLEXITY ESTIMATION ===================== */
-    const complexity = estimateComplexity(code);
+    // 🔥 ALWAYS TRUST RULE ENGINE OUTPUT
+    const timeComplexity = raw.timeComplexity ?? "Unknown";
+    const spaceComplexity = raw.spaceComplexity ?? "Unknown";
 
-    /* ===================== NORMALIZE FINDINGS ===================== */
     const findings = [];
 
-    if (raw?.matchedRule) {
+    if (raw.primaryIssue) {
       findings.push({
-        rule: raw.matchedRule,
-        reason: raw.reason,
-        fix: raw.fix,
-        confidence: raw.confidence,
+        rule: raw.primaryIssue.matchedRule,
+        reason: raw.primaryIssue.reason,
+        fix: raw.primaryIssue.fix,
+        confidence: raw.primaryIssue.confidence,
         errorType,
-        severity: raw.severity || "Medium",
-        suggestedTopics: raw.suggestedTopics || [],
-        similarProblems: raw.similarProblems || [],
+        severity: raw.primaryIssue.severity,
       });
     }
 
-    if (Array.isArray(raw?.secondaryIssues)) {
+    if (Array.isArray(raw.secondaryIssues)) {
       raw.secondaryIssues.forEach((issue) => {
         findings.push({
           rule: issue.matchedRule,
@@ -55,44 +51,34 @@ export const runAnalysis = async (req, res) => {
           fix: issue.fix,
           confidence: issue.confidence,
           errorType,
-          severity: issue.severity || "Low",
-          suggestedTopics: issue.suggestedTopics || [],
-          similarProblems: issue.similarProblems || [],
+          severity: issue.severity,
         });
       });
     }
 
-    /* ===================== SUMMARY ===================== */
     const summary = {
       hasErrors: findings.length > 0,
-      errorTypes: [...new Set(findings.map((f) => f.errorType))],
+      errorTypes: [...new Set(findings.map(f => f.errorType))],
       score: Math.max(0, 100 - findings.length * 20),
     };
 
-    /* ===================== SAVE TO DB ===================== */
     const analysisDoc = await Analysis.create({
-      userId: req.user._id, // ✅ CORRECT ObjectId
+      userId: req.user._id,
       language,
       topic,
       summary,
       findings,
-
-      // ✅ FROM COMPLEXITY ESTIMATOR (NOT RULE ENGINE)
-      timeComplexity: complexity.timeComplexity || "Unknown",
-      spaceComplexity: complexity.spaceComplexity || "Unknown",
+      timeComplexity,
+      spaceComplexity,
     });
 
-    /* ===================== UPDATE DASHBOARD STATS ===================== */
     await updateStats(req.user._id, analysisDoc);
 
-    console.log("✅ ANALYSIS SAVED:", analysisDoc._id);
-
-    /* ===================== RESPONSE ===================== */
     return res.status(201).json({
       summary,
       findings,
-      timeComplexity: complexity.timeComplexity || "Unknown",
-      spaceComplexity: complexity.spaceComplexity || "Unknown",
+      timeComplexity,
+      spaceComplexity,
     });
 
   } catch (err) {
