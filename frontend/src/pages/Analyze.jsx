@@ -36,7 +36,7 @@ export default function Analyze() {
     const token = localStorage.getItem("token");
 
     const res = await axios.post(
-      "http://localhost:5000/api/analysis",
+      `${import.meta.env.VITE_API_URL}/api/analysis`,
       {
         code,
         language,

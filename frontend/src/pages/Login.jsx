@@ -8,7 +8,7 @@ export default function Login({ setIsAuth }) {
   const { login } = useAuth();
 
   const handleSuccess = async (credentialResponse) => {
-    const res = await axios.post("http://localhost:5000/auth/google", {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/google`, {
       token: credentialResponse.credential,
     });
 
