@@ -1,11 +1,10 @@
 import Analysis from "../models/Analysis.js";
-import mongoose from "mongoose";
 
 export const getDashboardStats = async (req, res) => {
-  console.log("Dashboard Hit");
-  
+  console.log("📊 Dashboard Hit");
+
   try {
-    const userId = new mongoose.Types.ObjectId(req.user.userId);
+    const userId = req.user._id; 
 
     // Total analyses
     const totalAnalyses = await Analysis.countDocuments({ userId });
@@ -44,14 +43,15 @@ export const getDashboardStats = async (req, res) => {
       .select("language topic summary.score summary.errorTypes createdAt");
 
     return res.json({
-      user:req.user,
+      user: req.user,
       totalAnalyses,
       errorBreakdown,
       weakTopics,
       recentAnalyses,
     });
+
   } catch (err) {
-    console.error(err);
+    console.error("DASHBOARD ERROR:", err);
     res.status(500).json({ message: "Failed to load dashboard" });
   }
 };

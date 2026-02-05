@@ -17,6 +17,8 @@ export const tleRules = [
           confidence: "High",
           reason: "Nested loops exceed time limit.",
           fix: "Use hashing, prefix sum, two pointers.",
+          timeComplexity: "O(n^2) ",
+          spaceComplexity: "O(1)",
         };
       }
       return null;

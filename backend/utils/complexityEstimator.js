@@ -9,6 +9,12 @@ export function estimateComplexity(code) {
 
   const loopCount = countLoops(code);
   const recursion = hasRecursion(code);
+  if(loopCount === 1) {
+    return "O(n)";
+  }
+  if (loopCount === 2) {
+    return "O(n^2)";
+  }
 
   /* ===================== EXPONENTIAL ===================== */
 

@@ -1,7 +1,7 @@
 import analyzeCode from "../services/ruleEngine.js";
 import Analysis from "../models/Analysis.js";
 import { updateStats } from "../services/updateStats.js";
-import mongoose from "mongoose";
+import { estimateComplexity } from "../utils/complexityEstimator.js";
 
 export const runAnalysis = async (req, res) => {
   try {
@@ -14,11 +14,12 @@ export const runAnalysis = async (req, res) => {
       topic = "general",
     } = req.body;
 
+    /* ===================== VALIDATION ===================== */
     if (!code || !errorType) {
       return res.status(400).json({ error: "Invalid input" });
     }
 
-    // 🔥 RAW RULE ENGINE OUTPUT (OBJECT)
+    /* ===================== RULE ENGINE ===================== */
     const raw = analyzeCode({
       code,
       language,
@@ -27,7 +28,10 @@ export const runAnalysis = async (req, res) => {
       constraints,
     });
 
-    // 🔥 NORMALIZE INTO FINDINGS ARRAY
+    /* ===================== COMPLEXITY ESTIMATION ===================== */
+    const complexity = estimateComplexity(code);
+
+    /* ===================== NORMALIZE FINDINGS ===================== */
     const findings = [];
 
     if (raw?.matchedRule) {
@@ -58,28 +62,37 @@ export const runAnalysis = async (req, res) => {
       });
     }
 
-    // 🔥 SUMMARY
+    /* ===================== SUMMARY ===================== */
     const summary = {
       hasErrors: findings.length > 0,
-      errorTypes: [...new Set(findings.map(f => f.errorType))],
+      errorTypes: [...new Set(findings.map((f) => f.errorType))],
       score: Math.max(0, 100 - findings.length * 20),
     };
 
-    // 🔥 SAVE (IMPORTANT: ObjectId)
+    /* ===================== SAVE TO DB ===================== */
     const analysisDoc = await Analysis.create({
-      userId: new mongoose.Types.ObjectId(req.user.userId),
+      userId: req.user._id, // ✅ CORRECT ObjectId
       language,
       topic,
       summary,
       findings,
+
+      // ✅ FROM COMPLEXITY ESTIMATOR (NOT RULE ENGINE)
+      timeComplexity: complexity.timeComplexity || "Unknown",
+      spaceComplexity: complexity.spaceComplexity || "Unknown",
     });
 
-    await updateStats(req.user.userId, analysisDoc);
+    /* ===================== UPDATE DASHBOARD STATS ===================== */
+    await updateStats(req.user._id, analysisDoc);
 
-    console.log("✅ ANALYSIS SAVED WITH FINDINGS:", findings.length);
+    console.log("✅ ANALYSIS SAVED:", analysisDoc._id);
 
+    /* ===================== RESPONSE ===================== */
     return res.status(201).json({
-      analysis: analysisDoc,
+      summary,
+      findings,
+      timeComplexity: complexity.timeComplexity || "Unknown",
+      spaceComplexity: complexity.spaceComplexity || "Unknown",
     });
 
   } catch (err) {

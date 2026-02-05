@@ -5,26 +5,37 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchDashboard = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get("http://localhost:5000/api/dashboard", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setData(res.data);
+    } catch (err) {
+      console.error("DASHBOARD ERROR:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const token = localStorage.getItem("token");
+    fetchDashboard();
 
-        const res = await axios.get("http://localhost:5000/api/dashboard", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setData(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    // 🔥 Auto refresh when user returns from Analyze page
+    const handleFocus = () => {
+      fetchDashboard();
     };
 
-    fetchDashboard();
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   if (loading) {
@@ -37,9 +48,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-10 text-white">
-      <h1 className="text-3xl font-bold">Hello, {data.user?.name || "User"}!</h1>
 
-      {/* Stats */}
+      {/* ===== HEADER ===== */}
+      <h1 className="text-3xl font-bold">
+        Hello, {data.user?.name || "User"}!
+      </h1>
+
+      {/* ===== STATS ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard label="Total Analyses" value={data.totalAnalyses} />
         <StatCard label="Error Types" value={data.errorBreakdown.length} />
@@ -47,8 +62,12 @@ export default function Dashboard() {
         <StatCard label="Recent Runs" value={data.recentAnalyses.length} />
       </div>
 
-      {/* Recent */}
+      {/* ===== RECENT ANALYSES ===== */}
       <Section title="Recent Analyses">
+        {data.recentAnalyses.length === 0 && (
+          <p className="text-white/60">No analyses yet.</p>
+        )}
+
         {data.recentAnalyses.map((item, idx) => (
           <div
             key={idx}
@@ -67,8 +86,12 @@ export default function Dashboard() {
         ))}
       </Section>
 
-      {/* Weak topics */}
+      {/* ===== WEAK TOPICS ===== */}
       <Section title="Weak Topics">
+        {data.weakTopics.length === 0 && (
+          <p className="text-white/60">No weak topics detected yet.</p>
+        )}
+
         <div className="flex flex-wrap gap-3">
           {data.weakTopics.map((t, idx) => (
             <span
@@ -80,9 +103,12 @@ export default function Dashboard() {
           ))}
         </div>
       </Section>
+
     </div>
   );
 }
+
+/* ===== COMPONENTS ===== */
 
 function StatCard({ label, value }) {
   return (

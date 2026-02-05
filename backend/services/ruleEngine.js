@@ -110,7 +110,7 @@ export default function ruleEngine({ code, errorType, constraints, language }) {
         severity: getSeverity(errorType),
       })),
 
-      currentComplexity: timeComplexity,
+      timeComplexity: timeComplexity,
       spaceComplexity: spaceComplexity,
     };
   }
@@ -125,7 +125,7 @@ export default function ruleEngine({ code, errorType, constraints, language }) {
     reason:
       "No known failure pattern detected. The issue may involve logic or unseen edge cases.",
     fix: "Re-evaluate constraints, optimize time/space complexity, and test edge cases.",
-    currentComplexity: timeComplexity,
+    timeComplexity: timeComplexity,
     spaceComplexity: spaceComplexity,
     expectedComplexity: "Constraint dependent",
     suggestedTopics: ["Debugging", "Edge Cases"],

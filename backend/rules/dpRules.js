@@ -258,6 +258,8 @@ export const dpRules = [
           fix: "Use memoization or bottom-up DP.",
           suggestedTopics: ["Memoization"],
           similarProblems: ["Fibonacci"],
+          timeComplexity: "O(2^n) ",
+          spaceComplexity: "O(n)",
         };
       }
       return null;
