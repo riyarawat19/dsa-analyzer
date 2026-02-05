@@ -15,7 +15,7 @@ const app = express();
 /* ===== CORS (NO OPTIONS NEEDED) ===== */
 app.use(
   cors({
-    origin: "dsa-analyzer-silk.vercel.app",
+    origin: "https://dsa-analyzer-silk.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
