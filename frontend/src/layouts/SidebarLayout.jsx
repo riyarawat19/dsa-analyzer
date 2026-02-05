@@ -51,18 +51,7 @@ export default function SidebarLayout() {
             ))}
           </div>
 
-          <div className="mt-auto pt-4 border-t border-white/10">
-            <div
-              onClick={() => navigate("/profile")}
-              className="flex items-center gap-3 p-2 cursor-pointer"
-            >
-              <img
-                src={user?.picture}
-                className="h-8 w-8 rounded-full"
-              />
-              {open && <span>{user?.name}</span>}
-            </div>
-          </div>
+          
         </SidebarBody>
       </Sidebar>
 

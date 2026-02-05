@@ -66,3 +66,55 @@
     @apply bg-background text-foreground;
   }
 }
+
+body {
+  overflow: hidden;
+}
+
+
+/* ===== Full-year GitHub heatmap ===== */
+
+.heatmap-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.react-calendar-heatmap svg {
+  width: auto !important;
+  min-width: 780px;
+  height: auto !important;
+}
+
+.react-calendar-heatmap rect {
+  width: 9px;
+  height: 9px;
+  rx: 1.5;
+  ry: 1.5;
+  shape-rendering: geometricPrecision;
+  stroke: none !important;
+  fill-opacity: 1 !important;
+}
+
+.react-calendar-heatmap text {
+  font-size: 9px;
+  fill: rgba(255, 255, 255, 0.45);
+}
+
+.react-calendar-heatmap .color-empty {
+  fill: rgba(255, 255, 255, 0.08);
+}
+
+.react-calendar-heatmap .color-github-1 { fill: #0e4429; }
+.react-calendar-heatmap .color-github-2 { fill: #006d32; }
+.react-calendar-heatmap .color-github-3 { fill: #26a641; }
+.react-calendar-heatmap .color-github-4 { fill: #39d353; }
+
+.react-calendar-heatmap rect {
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+
+.react-calendar-heatmap rect:hover {
+  opacity: 0.8;
+}

@@ -1,12 +1,13 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Hero from "./pages/Hero";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "./pages/DashboardPage";
 import Analyze from "./pages/Analyze";
 import Profile from "@/pages/Profile";
 import { useAuth } from "@/context/AuthContext";
 import SidebarLayout from "./layouts/SidebarLayout";
 import AppShell from "./layouts/AppShell";
+import DashboardPage from "./pages/DashboardPage";
 
 function App() {
   const { isAuth } = useAuth();
@@ -26,7 +27,7 @@ function App() {
         <Route
           element={isAuth ? <SidebarLayout /> : <Navigate to="/login" />}
         >
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="analyze" element={<Analyze />} />
           <Route path="profile" element={<Profile />} />
         </Route>

@@ -104,7 +104,7 @@ export const MobileSidebar = ({ className, children, ...props }) => {
             exit={{ x: "-100%", opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className={cn(
-              "fixed inset-0 z-[100] flex flex-col justify-between p-10",
+              "fixed inset-0 z-[100] flex flex-col justify-between p-10 ",
               "bg-black/40 backdrop-blur-xl",
               className
             )}
@@ -134,7 +134,7 @@ export const SidebarLink = ({ link, className, ...props }) => {
       href={link.href}
       onClick={link.onClick}
       className={cn(
-        "group/sidebar flex gap-3 py-2",
+        "group/sidebar flex gap-3 py-2 cursor-pointer",
         "text-white/80 hover:text-white transition",
         className
       )}
