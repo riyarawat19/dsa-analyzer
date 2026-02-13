@@ -11,11 +11,12 @@ import userRoutes from "./routes/user.routes.js";
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 /* ===== CORS (NO OPTIONS NEEDED) ===== */
 app.use(
   cors({
-    origin: "https://dsa-analyzer-silk.vercel.app",
+    origin: ["https://dsa-analyzer-silk.vercel.app", "http://localhost:5173"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -24,7 +25,7 @@ app.use(
 
 app.use(express.json());
 
-mongoose
+await mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(console.error);
@@ -38,6 +39,6 @@ app.get("/", (req, res) => {
   res.send("Backend running ✅");
 });
 
-app.listen(5000, () => {
-  console.log("Backend running on port 5000");
+app.listen(PORT, () => {
+  console.log(`Backend running on port ${PORT}`);
 });

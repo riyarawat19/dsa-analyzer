@@ -3,12 +3,25 @@ import axios from "axios";
 
 export default function GoogleAuth({ setUser }) {
   const handleSuccess = async (credentialResponse) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/google`, {
-      token: credentialResponse.credential,
-    });
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/google`,
+        {
+          token: credentialResponse.credential, // Google ID token
+        },
+        {
+          withCredentials: true, // important if cookies/JWT later
+        }
+      );
 
-    localStorage.setItem("token", res.data.token);
-    setUser(res.data.user);
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
+    } catch (err) {
+      console.error(
+        "Google Auth failed:",
+        err.response?.data || err.message
+      );
+    }
   };
 
   return (
