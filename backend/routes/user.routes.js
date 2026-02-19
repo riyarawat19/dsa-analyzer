@@ -1,16 +1,22 @@
 import express from "express";
-import  { authMiddleware }  from "../middleware/authMiddleware.js";
+import supabaseAuth from "../middleware/supabaseAuth.js";
 
 const router = express.Router();
 
-router.get("/me", authMiddleware, (req, res) => {
+/**
+ * GET /api/user/me
+ * Returns logged-in Supabase user
+ */
+router.get("/me", supabaseAuth, (req, res) => {
+  const user = req.user;
+
   res.json({
     user: {
-      _id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      avatar: req.user.avatar,
-      createdAt: req.user.createdAt,
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || null,
+      avatar: user.user_metadata?.avatar_url || null,
+      createdAt: user.created_at,
     },
   });
 });

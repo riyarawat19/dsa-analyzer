@@ -1,6 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import { MultiStepLoader } from "../components/ui/MultiStepLoader";
+import { supabase } from "@/supabaseClient";
+
+
 
 export default function Analyze() {
   const [code, setCode] = useState("");

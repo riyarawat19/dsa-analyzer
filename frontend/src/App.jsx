@@ -1,37 +1,40 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Hero from "./pages/Hero";
 import Login from "./pages/Login";
-import Dashboard from "./pages/DashboardPage";
 import Analyze from "./pages/Analyze";
 import Profile from "@/pages/Profile";
-import { useAuth } from "@/context/AuthContext";
 import SidebarLayout from "./layouts/SidebarLayout";
 import AppShell from "./layouts/AppShell";
 import DashboardPage from "./pages/DashboardPage";
+import { useAuth } from "@/context/AuthContext";
 
 function App() {
-  const { isAuth } = useAuth();
+  const { user, loading } = useAuth();
+
+  // 🔑 CRITICAL: wait for auth restore
+  if (loading) return null; // or spinner
 
   return (
     <Routes>
       <Route element={<AppShell />}>
-        
-        {/* PUBLIC ROUTES */}
+        {/* PUBLIC */}
         <Route path="/" element={<Hero />} />
+
         <Route
           path="login"
-          element={isAuth ? <Navigate to="/dashboard" /> : <Login />}
+          element={user ? <Navigate to="/dashboard" /> : <Login />}
         />
 
-        {/* PROTECTED ROUTES */}
+        {/* PROTECTED */}
         <Route
-          element={isAuth ? <SidebarLayout /> : <Navigate to="/login" />}
+          element={
+            user ? <SidebarLayout /> : <Navigate to="/login" replace />
+          }
         >
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="analyze" element={<Analyze />} />
           <Route path="profile" element={<Profile />} />
         </Route>
-
       </Route>
     </Routes>
   );

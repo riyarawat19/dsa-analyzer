@@ -1,37 +1,50 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "@/supabaseClient";
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [isAuth, setIsAuth] = useState(false);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuth(!!token);
+    // Restore session after OAuth redirect
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        localStorage.setItem(
+          "token",
+          data.session.access_token
+        );
+        setUser(data.session.user);
+      }
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) {
+          localStorage.setItem(
+            "token",
+            session.access_token
+          );
+          setUser(session.user);
+        } else {
+          localStorage.removeItem("token");
+          setUser(null);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (token) => {
-    // 🔥 THIS WAS MISSING / BROKEN
-    localStorage.setItem("token", token);
-    setIsAuth(true);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    setIsAuth(false);
-  };
-
   return (
-    <AuthContext.Provider value={{ isAuth, login, logout }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
-  return ctx;
 };
+
+export const useAuth = () => useContext(AuthContext);

@@ -5,16 +5,15 @@ export const getDashboardStats = async (req, res) => {
   console.log("Dashboard Hit");
 
   try {
-    const userId = req.user._id;
+    // ✅ Supabase user ID (string)
+    const userId = req.user.id;
 
     /* =======================
        BASIC DASHBOARD STATS
     ======================= */
 
-    // Total analyses
     const totalAnalyses = await Analysis.countDocuments({ userId });
 
-    // Error breakdown
     const errorBreakdown = await Analysis.aggregate([
       { $match: { userId } },
       { $unwind: "$summary.errorTypes" },
@@ -26,7 +25,6 @@ export const getDashboardStats = async (req, res) => {
       },
     ]);
 
-    // Weak topics
     const weakTopics = await Analysis.aggregate([
       { $match: { userId } },
       { $unwind: "$findings" },
@@ -41,7 +39,6 @@ export const getDashboardStats = async (req, res) => {
       { $limit: 5 },
     ]);
 
-    // Recent analyses
     const recentAnalyses = await Analysis.find({ userId })
       .sort({ createdAt: -1 })
       .limit(5)
@@ -51,15 +48,13 @@ export const getDashboardStats = async (req, res) => {
        HEATMAP + STREAK LOGIC
     ======================= */
 
-    // Last 365 days
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 364);
 
-    // Group analyses by day
     const dailyActivity = await Analysis.aggregate([
       {
         $match: {
-          userId: new mongoose.Types.ObjectId(userId),
+          userId, // ✅ NO ObjectId conversion
           createdAt: { $gte: startDate },
         },
       },
@@ -77,13 +72,11 @@ export const getDashboardStats = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Map for quick lookup
     const activityMap = {};
     dailyActivity.forEach((d) => {
       activityMap[d._id] = d.count;
     });
 
-    // Fill all 365 days
     const heatmap = [];
     for (let i = 0; i < 365; i++) {
       const d = new Date();
@@ -103,7 +96,6 @@ export const getDashboardStats = async (req, res) => {
     let longestStreak = 0;
     let tempStreak = 0;
 
-    // Longest streak
     for (const day of heatmap) {
       if (day.count > 0) {
         tempStreak++;
@@ -113,14 +105,10 @@ export const getDashboardStats = async (req, res) => {
       }
     }
 
-    // Current streak (from today backwards)
     let currentStreak = 0;
     for (let i = heatmap.length - 1; i >= 0; i--) {
-      if (heatmap[i].count > 0) {
-        currentStreak++;
-      } else {
-        break;
-      }
+      if (heatmap[i].count > 0) currentStreak++;
+      else break;
     }
 
     /* =======================
@@ -128,20 +116,21 @@ export const getDashboardStats = async (req, res) => {
     ======================= */
 
     return res.json({
-      user: req.user,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        name: req.user.user_metadata?.full_name || "User",
+      },
       totalAnalyses,
       errorBreakdown,
       weakTopics,
       recentAnalyses,
-
-      // 🔥 Heatmap & streak
       heatmap,
       streak: {
         current: currentStreak,
         longest: longestStreak,
       },
     });
-
   } catch (err) {
     console.error("❌ DASHBOARD ERROR:", err);
     res.status(500).json({ message: "Failed to load dashboard" });
