@@ -63,7 +63,7 @@ export const runAnalysis = async (req, res) => {
     };
 
     const analysisDoc = await Analysis.create({
-      userId: req.user._id,
+      userId: req.user.id,
       language,
       topic,
       summary,
@@ -72,7 +72,7 @@ export const runAnalysis = async (req, res) => {
       spaceComplexity,
     });
 
-    await updateStats(req.user._id, analysisDoc);
+    await updateStats(req.user.id, analysisDoc);
 
     return res.status(201).json({
       summary,

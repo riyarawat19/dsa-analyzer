@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const statsSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      unique: true,
-      index: true,
-    },
+  type: String,
+  required: true,
+  unique: true,
+  index: true,
+},
 
     totalAnalyses: { type: Number, default: 0 },
 

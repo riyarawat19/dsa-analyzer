@@ -16,22 +16,18 @@ const findingSchema = new mongoose.Schema(
 
 const analysisSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    type: String, // ✅ Changed from ObjectId to String
     required: true,
+    index: true, // ✅ Add index for better query performance
   },
-
   language: String,
   errorType: String,
-
   summary: {
     hasErrors: Boolean,
     errorTypes: [String],
     score: Number,
   },
-
   findings: [findingSchema],
-
   createdAt: {
     type: Date,
     default: Date.now,

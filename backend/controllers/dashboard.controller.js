@@ -117,10 +117,26 @@ export const getDashboardStats = async (req, res) => {
 
     return res.json({
       user: {
-        id: req.user.id,
-        email: req.user.email,
-        name: req.user.user_metadata?.full_name || "User",
-      },
+  id: req.user.id,
+  email: req.user.email,
+  name:
+    req.user.user_metadata?.full_name ||
+    req.user.user_metadata?.name ||
+    "User",
+
+  avatar:
+    req.user.user_metadata?.avatar_url ||
+    req.user.user_metadata?.picture ||
+    "",
+
+  joinedAt:
+    req.user.created_at ||
+    req.user.user_metadata?.created_at ||
+    null,
+
+  provider:
+    req.user.app_metadata?.provider || "email",
+},
       totalAnalyses,
       errorBreakdown,
       weakTopics,

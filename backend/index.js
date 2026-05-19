@@ -11,20 +11,16 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-/* ===== CORS ===== */
 app.use(
   cors({
-    origin: [
-      "https://dsa-analyzer-silk.vercel.app",
-      "http://localhost:5173",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: process.env.NODE_ENV === "development"
+      ? "http://localhost:5173" 
+      : "https://quicktalk-sand.vercel.app", 
+    credentials: true, 
+    methods: ["GET", "POST", "PUT", "DELETE"], 
+    allowedHeaders: ["Content-Type", "Authorization"], 
   })
 );
-
 app.use(express.json());
 
 /* ===== START SERVER ===== */
@@ -38,7 +34,7 @@ const startServer = async () => {
     app.use("/api/user", userRoutes);
 
     app.get("/", (req, res) => {
-      res.send("Backend running ✅");
+      res.send("Backend running ");
     });
 
     app.listen(PORT, () => {
