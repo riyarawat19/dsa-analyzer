@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/supabaseClient";
 
 const AuthContext = createContext();
@@ -11,10 +12,7 @@ export const AuthProvider = ({ children }) => {
     // Restore session after OAuth redirect
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
-        localStorage.setItem(
-          "token",
-          data.session.access_token
-        );
+        localStorage.setItem("token", data.session.access_token);
         setUser(data.session.user);
       }
       setLoading(false);
@@ -22,29 +20,64 @@ export const AuthProvider = ({ children }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session) {
-          localStorage.setItem(
-            "token",
-            session.access_token
-          );
-          setUser(session.user);
-        } else {
-          localStorage.removeItem("token");
-          setUser(null);
-        }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        localStorage.setItem("token", session.access_token);
+        setUser(session.user);
+      } else {
+        localStorage.removeItem("token");
+        setUser(null);
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  // ✅ Add logout function
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("token");
+      setUser(null);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force logout even if Supabase call fails
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
+
+  // ✅ Add login function (optional, for consistency)
+  const login = async (provider = "google") => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin + "/dashboard",
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  };
+
+  const value = {
+    user,
+    loading,
+    logout,
+    login,
+    isAuthenticated: !!user,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

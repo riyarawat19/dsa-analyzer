@@ -18,7 +18,7 @@ export default function DashboardPage() {
       } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
-        console.error("❌ No Supabase session");
+        console.error("No Supabase session");
         return;
       }
 
@@ -40,7 +40,6 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    // ⛔ WAIT for auth to finish
     if (!authLoading && user) {
       fetchDashboard();
       window.addEventListener("focus", fetchDashboard);

@@ -57,10 +57,6 @@ export default function Profile() {
         {/* Info */}
         <div className="space-y-4 text-sm">
           <ProfileRow label="User ID" value={user._id} />
-          <ProfileRow
-            label="Joined On"
-            value={new Date(user.createdAt).toLocaleDateString()}
-          />
           <ProfileRow label="Auth Provider" value="Google" />
         </div>
 
