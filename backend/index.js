@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: process.env.NODE_ENV === "development"
       ? "http://localhost:5173" 
-      : "https://quicktalk-sand.vercel.app", 
+      : "https://dsa-analyzer-silk.vercel.app", 
     credentials: true, 
     methods: ["GET", "POST", "PUT", "DELETE"], 
     allowedHeaders: ["Content-Type", "Authorization"], 
